@@ -1,0 +1,18 @@
+name: DotSlash files for GitHub releases
+description: Adds DotSlash files to a GitHub release once artifacts are present
+inputs:
+  config:
+    description: path to .json file in the repo
+    required: true
+  tag:
+    description: tag identifying the release whose assets should be used
+    required: true
+runs:
+  using: docker
+  image: Dockerfile
+  args:
+    - '--config'
+    - ${{ inputs.config }}
+    - '--tag'
+    - ${{ inputs.tag }}
+    - '--upload'
