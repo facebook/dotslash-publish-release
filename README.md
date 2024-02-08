@@ -199,7 +199,7 @@ disable the HTTP provider:
 
 ```json
 {
-  "exclude-http-provider": false,
+  "exclude-http-provider": true,
   "outputs": {
     "hermes": {
       "platforms": {
