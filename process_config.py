@@ -442,7 +442,7 @@ def parse_args():
     parser.add_argument(
         "--output",
         help=f"folder where DotSlash files should be written, defaults to $RUNNER_TEMP",
-        default=os.getenv("RUNMNER_TEMP"),
+        default=os.getenv("RUNNER_TEMP"),
     )
 
     return parser.parse_args()
