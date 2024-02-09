@@ -49,6 +49,7 @@ def _main() -> int:
     if not output_folder:
         output_folder = tempfile.mkdtemp(prefix=f"{repo.replace('/', '_')}_dotslash")
     logging.info(f"DotSlash files will be written to `{output_folder}")
+    os.makedirs(output_folder, exist_ok=True)
 
     tag = args.tag
     github_server_url = args.server
