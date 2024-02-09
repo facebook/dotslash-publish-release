@@ -441,8 +441,8 @@ def parse_args():
 
     parser.add_argument(
         "--output",
-        help=f"folder where DotSlash files should be written, defaults to $GITHUB_WORKSPACE",
-        default=os.getenv("GITHUB_WORKSPACE"),
+        help=f"folder where DotSlash files should be written, defaults to $RUNNER_TEMP",
+        default=os.getenv("RUNMNER_TEMP"),
     )
 
     return parser.parse_args()
