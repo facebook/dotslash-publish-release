@@ -117,6 +117,11 @@ def _main() -> int:
         output_file = os.path.join(output_folder, output_filename)
         with open(output_file, "w") as f:
             f.write(manifest_file_contents)
+
+            # `chmod +x` if not on Windows.
+            if not sys.platform.startswith('win'):
+                fd = f.fileno()
+                os.fchmod(fd, 0o755)
         logging.info(f"wrote manifest to {output_file}")
 
         if args.upload:
