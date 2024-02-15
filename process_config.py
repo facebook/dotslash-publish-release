@@ -136,7 +136,8 @@ def _main() -> int:
                     output_file,
                     "--repo",
                     gh_repo_arg,
-                ]
+                ],
+                check=True
             )
 
     return 0
