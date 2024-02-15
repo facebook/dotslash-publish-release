@@ -49,6 +49,7 @@ def _main() -> int:
     if not output_folder:
         output_folder = tempfile.mkdtemp(prefix=f"{repo.replace('/', '_')}_dotslash")
     logging.info(f"DotSlash files will be written to `{output_folder}")
+    os.makedirs(output_folder, exist_ok=True)
 
     tag = args.tag
     github_server_url = args.server
@@ -447,8 +448,8 @@ def parse_args():
 
     parser.add_argument(
         "--output",
-        help=f"folder where DotSlash files should be written, defaults to $GITHUB_WORKSPACE",
-        default=os.getenv("GITHUB_WORKSPACE"),
+        help=f"folder where DotSlash files should be written, defaults to $RUNNER_TEMP",
+        default=os.getenv("RUNNER_TEMP"),
     )
 
     return parser.parse_args()
