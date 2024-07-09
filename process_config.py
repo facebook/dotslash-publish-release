@@ -18,7 +18,7 @@ from typing import Any, Dict, Literal, Optional, Tuple, Union
 
 
 HashAlgorithm = Literal["blake3", "sha256"]
-ArtifactFormat = Literal["gz", "tar", "tar.gz", "tar.zst", "zst"]
+ArtifactFormat = Literal["gz", "tar", "tar.gz", "tar.zst", "zst", "tar.xz", "xz", "zip"]
 
 # Recognized properties in the JSON config.
 OUTPUTS_PARAM = "outputs"
@@ -387,14 +387,21 @@ def get_release_assets(*, tag: str, github_repository) -> Dict[str, Any]:
 def guess_artifact_format_from_asset_name(asset_name: str) -> Optional[ArtifactFormat]:
     if asset_name.endswith(".tar.gz") or asset_name.endswith(".tgz"):
         return "tar.gz"
-    if asset_name.endswith(".tar.zst") or asset_name.endswith(".tzst"):
+    elif asset_name.endswith(".tar.zst") or asset_name.endswith(".tzst"):
         return "tar.zst"
+    elif asset_name.endswith(".tar.xz"):
+        return "tar.xz"
     elif asset_name.endswith(".tar"):
         return "tar"
     elif asset_name.endswith(".gz"):
         return "gz"
     elif asset_name.endswith(".zst"):
         return "zst"
+    elif asset_name.endswith(".xz"):
+        return "xz"
+    elif asset_name.endswith(".zip"):
+        return "zip"
+
     else:
         return None
 
