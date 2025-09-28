@@ -12,6 +12,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import datetime
 
 from functools import cache
 from typing import Any, Dict, Literal, Optional, Tuple, Union
@@ -24,6 +25,47 @@ ArtifactFormat = Literal["gz", "tar", "tar.gz", "tar.zst", "zst", "tar.xz", "xz"
 OUTPUTS_PARAM = "outputs"
 EXCLUDE_HTTP_PROVIDER_PARAM = "exclude-http-provider"
 EXCLUDE_GITHUB_PROVIDER_PARAM = "exclude-github-release-provider"
+
+
+def collect_build_metadata(config_path: str) -> Dict[str, Any]:
+    """Collect build metadata from GitHub Actions environment variables."""
+    metadata = {}
+    
+    # Source file information
+    if config_path:
+        metadata["source_config"] = config_path
+    
+    # CI/GitHub Actions information
+    github_env_vars = [
+        ("github_repository", "GITHUB_REPOSITORY"),
+        ("github_ref", "GITHUB_REF"),
+        ("github_sha", "GITHUB_SHA"),
+        ("github_run_id", "GITHUB_RUN_ID"),
+        ("github_run_number", "GITHUB_RUN_NUMBER"),
+        ("github_workflow", "GITHUB_WORKFLOW"),
+        ("github_actor", "GITHUB_ACTOR"),
+        ("github_event_name", "GITHUB_EVENT_NAME"),
+        ("github_server_url", "GITHUB_SERVER_URL"),
+    ]
+    
+    ci_info = {}
+    for key, env_var in github_env_vars:
+        value = os.getenv(env_var)
+        if value:
+            ci_info[key] = value
+    
+    if ci_info:
+        metadata["ci"] = ci_info
+    
+    # Build timestamp
+    metadata["generated_at"] = datetime.datetime.utcnow().isoformat() + "Z"
+    
+    # Add link to the CI job if we have the necessary info
+    if all(os.getenv(var) for var in ["GITHUB_SERVER_URL", "GITHUB_REPOSITORY", "GITHUB_RUN_ID"]):
+        job_url = f"{os.getenv('GITHUB_SERVER_URL')}/{os.getenv('GITHUB_REPOSITORY')}/actions/runs/{os.getenv('GITHUB_RUN_ID')}"
+        metadata["ci_job_url"] = job_url
+    
+    return metadata
 
 
 def main() -> None:
@@ -93,6 +135,20 @@ def _main() -> int:
     logging.info("using config:")
     logging.info(json.dumps(config, indent=2))
 
+    # Collect build metadata from the environment
+    build_metadata = None
+    include_metadata = args.include_build_metadata and not args.exclude_build_metadata
+    
+    # Also check for environment variable (for Docker action support)
+    include_metadata_env = os.getenv("INCLUDE_BUILD_METADATA", "true").lower()
+    if include_metadata_env in ["false", "0", "no"]:
+        include_metadata = False
+    
+    if include_metadata:
+        build_metadata = collect_build_metadata(args.config)
+        logging.info("build metadata:")
+        logging.info(json.dumps(build_metadata, indent=2))
+
     name_to_asset = get_release_assets(tag=tag, github_repository=repo)
     logging.info(json.dumps(name_to_asset, indent=2))
 
@@ -111,6 +167,7 @@ def _main() -> int:
             platform_entries,
             include_http_provider=not exclude_http_provider,
             include_github_release_provider=not exclude_github_release_provider,
+            build_metadata=build_metadata,
         )
         logging.info(manifest_file_contents)
 
@@ -150,6 +207,7 @@ def generate_manifest_file(
     platform_entries,
     include_http_provider: bool,
     include_github_release_provider: bool,
+    build_metadata: Optional[Dict[str, Any]] = None,
 ) -> str:
     platforms = {}
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -224,6 +282,10 @@ def generate_manifest_file(
         "name": name,
         "platforms": platforms,
     }
+    
+    # Add build metadata if available
+    if build_metadata:
+        manifest["build_metadata"] = build_metadata
 
     return f"""#!/usr/bin/env dotslash
 
@@ -456,6 +518,19 @@ def parse_args():
         "--output",
         help=f"folder where DotSlash files should be written, defaults to $GITHUB_WORKSPACE",
         default=os.getenv("GITHUB_WORKSPACE"),
+    )
+
+    parser.add_argument(
+        "--include-build-metadata",
+        action="store_true",
+        default=True,
+        help="include build metadata in the generated DotSlash files (default: True)",
+    )
+
+    parser.add_argument(
+        "--exclude-build-metadata",
+        action="store_true",
+        help="exclude build metadata from the generated DotSlash files",
     )
 
     return parser.parse_args()
