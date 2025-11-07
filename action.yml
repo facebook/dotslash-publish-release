@@ -14,11 +14,11 @@ inputs:
 runs:
   using: docker
   image: Dockerfile
-  env:
-    INCLUDE_BUILD_METADATA: ${{ inputs.include-build-metadata }}
   args:
     - '--config'
     - ${{ inputs.config }}
     - '--tag'
     - ${{ inputs.tag }}
     - '--upload'
+    - '--include-build-metadata'
+    - ${{ inputs.include-build-metadata }}

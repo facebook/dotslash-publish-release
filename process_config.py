@@ -137,7 +137,10 @@ def _main() -> int:
 
     # Collect build metadata from the environment
     build_metadata = None
-    include_metadata = args.include_build_metadata and not args.exclude_build_metadata
+    
+    # Convert string argument to boolean
+    include_metadata_str = str(args.include_build_metadata).lower()
+    include_metadata = include_metadata_str not in ["false", "0", "no"] and not args.exclude_build_metadata
     
     # Also check for environment variable (for Docker action support)
     include_metadata_env = os.getenv("INCLUDE_BUILD_METADATA", "true").lower()
@@ -522,9 +525,9 @@ def parse_args():
 
     parser.add_argument(
         "--include-build-metadata",
-        action="store_true",
-        default=True,
-        help="include build metadata in the generated DotSlash files (default: True)",
+        type=str,
+        default="true",
+        help="include build metadata in the generated DotSlash files (default: true)",
     )
 
     parser.add_argument(
