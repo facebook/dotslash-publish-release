@@ -7,6 +7,10 @@ inputs:
   tag:
     description: tag identifying the release whose assets should be used
     required: true
+  include-build-metadata:
+    description: include build metadata in the generated DotSlash files
+    required: false
+    default: 'true'
 runs:
   using: docker
   image: Dockerfile
@@ -16,3 +20,5 @@ runs:
     - '--tag'
     - ${{ inputs.tag }}
     - '--upload'
+    - '--include-build-metadata'
+    - ${{ inputs.include-build-metadata }}

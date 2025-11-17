@@ -261,6 +261,56 @@ Each platform entry recognizes the following properties:
 * `hash` must be one of `"blake3"` or `"sha256"`, but it defaults to `"blake3"`,
   so it is optional.
 
+## Action Inputs
+
+This action supports the following inputs:
+
+* `config` (required): Path to .json file in the repo that defines how DotSlash files should be generated.
+* `tag` (required): Tag identifying the release whose assets should be used.
+* `include-build-metadata` (optional): Whether to include build metadata in the generated DotSlash files. Defaults to `true`.
+
+## Build Metadata
+
+By default, the action embeds build metadata in the generated DotSlash files to provide traceability about how and when the files were generated. This metadata includes:
+
+* **Source configuration**: Path to the config file used to generate the DotSlash file
+* **CI information**: Repository, commit SHA, run ID, workflow name, actor, and event type
+* **Generation timestamp**: When the DotSlash file was generated
+* **CI job URL**: Direct link to the GitHub Actions run that generated the file
+
+Example of embedded metadata:
+
+```json
+{
+  "name": "my-tool",
+  "platforms": { ... },
+  "build_metadata": {
+    "source_config": ".github/workflows/dotslash-config.json",
+    "ci": {
+      "github_repository": "owner/repo",
+      "github_sha": "abc123def456",
+      "github_run_id": "987654321",
+      "github_workflow": "Build and Release",
+      "github_actor": "john-doe",
+      "github_event_name": "release",
+      "github_server_url": "https://github.com"
+    },
+    "generated_at": "2025-09-28T15:23:57.878282Z",
+    "ci_job_url": "https://github.com/owner/repo/actions/runs/987654321"
+  }
+}
+```
+
+To disable build metadata inclusion, set `include-build-metadata` to `false`:
+
+```yaml
+- uses: facebook/dotslash-publish-release@v1
+  with:
+    config: .github/workflows/dotslash-config.json
+    tag: ${{ github.event.workflow_run.head_branch }}
+    include-build-metadata: false
+```
+
 ## License
 
 dotslash-publish-release is [MIT licensed](./LICENSE).
